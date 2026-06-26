@@ -1,0 +1,11 @@
+# macOS
+.DS_Store
+
+# Python (skill scripts)
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Node (if a contributing tool ever lands)
+node_modules/
