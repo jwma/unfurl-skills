@@ -79,6 +79,14 @@ Once the skill is installed and `UNFURL_API_KEY` is set, you don't run any comma
 | "把这个分享成链接：`# 第 13 期周报……`" | `https://unfurl.anmuji.com/p/mno345` |
 | "把这段 HTML 发到 unfurl：`<h1>演示</h1>…`" | `https://unfurl.anmuji.com/p/pqr678` |
 
+**Or chain it into a bigger task.** Describe the whole job and end with the skill — the agent does the work, then publishes the result:
+
+> "Analyze this source file, add Mermaid diagrams to illustrate it, write it up as Markdown, then `/unfurl-share`."
+
+> "分析当前这段源代码，用 Mermaid 画图辅助说明，整理成 md，然后 `/unfurl-share`。"
+
+The agent builds the writeup and hands back the Share link. (Naming the skill directly with `/unfurl-share` is just an explicit trigger — plain intent works too.)
+
 It triggers on *publish / share / post to unfurl*, *make a share link*, or any mention of **unfurl**. Point it at a file, paste the content inline, or just describe what to share; the agent picks the format and runs the script for you.
 
 The underlying flags (`--format`, `--title`, `--file`, …) and the full error-code reference are in [`SKILL.md`](./skills/unfurl-share/SKILL.md) — you won't normally need them.
