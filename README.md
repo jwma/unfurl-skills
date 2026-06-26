@@ -40,12 +40,13 @@ npx skills add jwma/unfurl-skills --all
 
 ## Configure
 
-`unfurl-share` reads two environment variables every run. Add them to your shell profile (e.g. `~/.zshrc`):
+`unfurl-share` reads one environment variable every run. Add it to your shell profile (e.g. `~/.zshrc`):
 
 ```sh
 export UNFURL_API_KEY="..."        # a Creator's API key from the unfurl dashboard (Dashboard → API keys)
-export UNFURL_BASE_URL="https://unfurl.example.com"   # your unfurl instance, no path
 ```
+
+The unfurl instance is fixed at `https://unfurl.anmuji.com`. Set `UNFURL_BASE_URL` (or pass `--base-url`) only to target a self-hosted instance.
 
 See the skill's [`SKILL.md`](./skills/unfurl-share/SKILL.md) for full usage, flags, and the error-code reference.
 

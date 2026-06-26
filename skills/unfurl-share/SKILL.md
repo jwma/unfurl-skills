@@ -9,21 +9,11 @@ Publish Markdown or HTML to an unfurl instance and get back the **Share link** �
 
 ## Setup
 
-Install with the [open agent skills CLI](https://github.com/vercel-labs/skills) — works with Claude Code, Codex, Cursor, and the [other supported agents](https://github.com/vercel-labs/skills#supported-agents):
-
-```sh
-npx skills add jwma/unfurl-skills                       # interactive
-npx skills add jwma/unfurl-skills -a claude-code -g -y  # Claude Code, global, no prompts
-```
-
-See the repo README for scope options (project vs. global, other supported agents).
-
-Then set two environment variables (the script reads them every run):
+Set one environment variable (the script reads it every run):
 
 - `UNFURL_API_KEY` — a Creator's API key. Create one in the unfurl dashboard (**Dashboard → API keys**). Only a keyed hash is stored server-side; copy the key now.
-- `UNFURL_BASE_URL` — your unfurl instance URL, no path (e.g. `https://unfurl.example.com`).
 
-Add them to your shell profile (e.g. `~/.zshrc`) or export them in the session before the Agent runs.
+Add it to your shell profile (e.g. `~/.zshrc`) or export it in the session before the Agent runs. The unfurl instance is fixed at `https://unfurl.anmuji.com`; pass `--base-url` (or set `UNFURL_BASE_URL`) only to target a self-hosted instance.
 
 ## Publish
 
@@ -35,13 +25,13 @@ echo '<b>Hi</b>'      | python3 scripts/unfurl-share.py --format html     # HTML
 python3 scripts/unfurl-share.py --file ./notes.md --title "Project notes" # from a file
 ```
 
-Flags: `--format md|html` (default `md`), `--title "…"`, `--file PATH`, `--api-key`, `--base-url` (override the env vars for one call).
+Flags: `--format md|html` (default `md`), `--title "…"`, `--file PATH`, `--api-key`, `--base-url` (override the default instance for one call).
 
-The script posts `Authorization: Bearer $UNFURL_API_KEY` to `POST {UNFURL_BASE_URL}/api/v1/docs` with a JSON body `{ format, content, title? }`. It uses only the Python 3 standard library (`urllib`, `json`) — no third-party packages, no Node, no `jq`.
+The script posts `Authorization: Bearer $UNFURL_API_KEY` to `POST https://unfurl.anmuji.com/api/v1/docs` with a JSON body `{ format, content, title? }`. It uses only the Python 3 standard library (`urllib`, `json`) — no third-party packages, no Node, no `jq`.
 
 ## Errors
 
-On failure the script exits nonzero and prints **one concise, mapped message** to stderr — relay that to the user; do not surface raw HTTP. Exit codes: `2` for usage/config the script catches locally (missing key/base URL, bad `--format`, empty stdin/`--file`); `1` for runtime/API failures — including the structured error codes below:
+On failure the script exits nonzero and prints **one concise, mapped message** to stderr — relay that to the user; do not surface raw HTTP. Exit codes: `2` for usage/config the script catches locally (missing key, bad `--format`, empty stdin/`--file`); `1` for runtime/API failures — including the structured error codes below:
 
 | code | means | fix |
 |------|-------|-----|

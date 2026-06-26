@@ -10,9 +10,9 @@ error-code mapping, and output contract:
 Credentials come from the environment so the same script serves a human at a
 terminal and an Agent driving it programmatically:
 
-  UNFURL_API_KEY   A Creator's API key (from the unfurl dashboard).
-  UNFURL_BASE_URL  Where your unfurl instance is served, e.g. https://unfurl.example.com
-                   (trailing slash is fine).
+  UNFURL_API_KEY   A Creator's API key (from the unfurl dashboard). Required.
+  UNFURL_BASE_URL  Optional. Overrides the default instance (https://unfurl.anmuji.com),
+                   e.g. for a self-hosted unfurl. Trailing slash is fine.
 
 Optional:
   UNFURL_MAX_TIME         request socket timeout, seconds (default 30). The effective
@@ -22,7 +22,7 @@ Optional:
   UNFURL_DEBUG=1          print full response bodies on unexpected errors.
 
 Usage:
-  echo '# Hello' | UNFURL_API_KEY=… UNFURL_BASE_URL=… unfurl-share.py
+  echo '# Hello' | UNFURL_API_KEY=… unfurl-share.py
   echo '<b>hi</b>' | unfurl-share.py --format html --title "Greeting"
   unfurl-share.py --file ./note.md --title "Notes"
 """
@@ -38,6 +38,7 @@ from typing import NoReturn
 
 ENDPOINT_PATH = "/api/v1/docs"
 DEFAULT_FORMAT = "md"
+DEFAULT_BASE_URL = "https://unfurl.anmuji.com"
 
 # Exit codes: 2 == bad usage/config (caller's fault), 1 == runtime/API failure.
 EXIT_USAGE = 2
@@ -121,7 +122,7 @@ def parse_args():
     p.add_argument("--format", default=DEFAULT_FORMAT, help="md (default) or html")
     p.add_argument("--title", default="")
     p.add_argument("--file", default="")
-    p.add_argument("--base-url", dest="base_url", default=os.environ.get("UNFURL_BASE_URL", ""))
+    p.add_argument("--base-url", dest="base_url", default=os.environ.get("UNFURL_BASE_URL", DEFAULT_BASE_URL))
     p.add_argument("--api-key", dest="api_key", default=os.environ.get("UNFURL_API_KEY", ""))
     # argparse exits 2 on unknown args / missing values, matching the bash script.
     return p.parse_args()
@@ -134,7 +135,7 @@ def main():
     if not args.api_key:
         die("UNFURL_API_KEY is not set. Create a key in your unfurl dashboard and export it.", EXIT_USAGE)
     if not args.base_url:
-        die("UNFURL_BASE_URL is not set (e.g. https://unfurl.example.com).", EXIT_USAGE)
+        die("Base URL is empty. It defaults to the unfurl instance; pass --base-url (or set UNFURL_BASE_URL) to override it.", EXIT_USAGE)
     base_url = args.base_url.rstrip("/")  # tolerate a trailing slash
     if args.format not in ("md", "html"):
         die("Invalid --format '%s'. Use 'md' or 'html'." % args.format, EXIT_USAGE)

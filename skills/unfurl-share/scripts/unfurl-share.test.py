@@ -264,9 +264,11 @@ def main():
     eq("missing API_KEY exit", 2, RC)
     check("missing API_KEY made no request", REQ == {})
 
-    OUT, ERR, RC, REQ = run_case("missing BASE_URL", 2, "success", "x",
+    # An explicitly-empty base-url override still errors cleanly (exit 2); when
+    # nothing is provided the default instance (https://unfurl.anmuji.com) is used.
+    OUT, ERR, RC, REQ = run_case("empty base-url override", 2, "success", "x",
                                  env_extra={"UNFURL_BASE_URL": ""})
-    eq("missing BASE_URL exit", 2, RC)
+    eq("empty base-url override exit", 2, RC)
 
     OUT, ERR, RC, REQ = run_case("bad format", 2, "success", "x", ["--format", "pdf"])
     eq("bad format exit", 2, RC)
