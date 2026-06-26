@@ -61,16 +61,25 @@ See the skill's [`SKILL.md`](./skills/unfurl-share/SKILL.md) for full usage, fla
 
 ## Usage
 
-Once the skill is installed and `UNFURL_API_KEY` is set, you don't run any command — you just **talk to your agent**. It recognizes the intent, runs the skill behind the scenes, and hands back the Share link. For example:
+Once the skill is installed and `UNFURL_API_KEY` is set, you don't run any command — you just **talk to your agent**. It recognizes the intent, runs the skill behind the scenes, and hands back the Share link. It works in any language — English or 中文:
+
+**English**
 
 | You say … | … and the agent replies |
 |-----------|--------------------------|
 | "Publish `notes.md` to unfurl as *Project notes*." | `https://unfurl.anmuji.com/p/abc123` |
 | "Turn this into a share link: `# Sprint 13 retro …`" | `https://unfurl.anmuji.com/p/def456` |
 | "Post this HTML to unfurl: `<h1>Demo</h1>…`" | `https://unfurl.anmuji.com/p/ghi789` |
-| "把这篇周报分享成链接。" | `https://unfurl.anmuji.com/p/jkl012` |
 
-It triggers on *publish / share / post to unfurl*, *make a share link*, or any mention of **unfurl** — in any language. Point it at a file, paste the content inline, or just describe what to share; the agent picks the format and runs the script for you.
+**中文**
+
+| 你说…… | agent 回复 |
+|--------|------------|
+| "把 `notes.md` 发布到 unfurl，标题《项目周报》。" | `https://unfurl.anmuji.com/p/jkl012` |
+| "把这个分享成链接：`# 第 13 期周报……`" | `https://unfurl.anmuji.com/p/mno345` |
+| "把这段 HTML 发到 unfurl：`<h1>演示</h1>…`" | `https://unfurl.anmuji.com/p/pqr678` |
+
+It triggers on *publish / share / post to unfurl*, *make a share link*, or any mention of **unfurl**. Point it at a file, paste the content inline, or just describe what to share; the agent picks the format and runs the script for you.
 
 The underlying flags (`--format`, `--title`, `--file`, …) and the full error-code reference are in [`SKILL.md`](./skills/unfurl-share/SKILL.md) — you won't normally need them.
 
