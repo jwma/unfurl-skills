@@ -25,11 +25,23 @@ echo '' | python3 skills/unfurl-share/scripts/unfurl-share.py --api-key x --base
 echo '# Hello' | UNFURL_API_KEY=… \
   python3 skills/unfurl-share/scripts/unfurl-share.py
 
+# Offline test suite for unfurl-read (same shape: loopback stub, no network/key).
+python3 skills/unfurl-read/scripts/unfurl-read.test.py
+
+# Byte-compile check.
+python3 -m py_compile skills/unfurl-read/scripts/unfurl-read.py
+
+# Offline usage check — exits 2 with a mapped message, makes no request.
+python3 skills/unfurl-read/scripts/unfurl-read.py https://example.com/foo
+
+# Actually read a Doc (token-based, no key needed):
+python3 skills/unfurl-read/scripts/unfurl-read.py https://unfurl.anmuji.com/p/<token>
+
 # Confirm `npx skills` discovers the skill(s) without installing:
 npx skills add ./ --list
 ```
 
-The test file is one self-contained `main()` with no per-case selector. To run a single case, scope `main()` in `skills/unfurl-share/scripts/unfurl-share.test.py` — each case is a `run_case(...)` call keyed by a stub response in `RESPONSES`.
+Each test file is one self-contained `main()` with no per-case selector. To run a single case, scope `main()` in the respective `*.test.py` — each case is a `run_case(...)` call keyed by a stub response in `RESPONSES`.
 
 ## Architecture
 
@@ -44,7 +56,14 @@ The test file is one self-contained `main()` with no per-case selector. To run a
 
 **Error codes stay in sync across three places.** The `map_error()` table in `unfurl-share.py`, the error-code table in `SKILL.md`, and the `RESPONSES` map in the test all mirror the structured codes returned by unfurl's `POST /api/v1/docs`. The source of truth for that contract is the **unfurl project** (`src/lib/api/errors.ts` and the `/api/v1/docs` route). If the API changes there, update all three here together.
 
+**`unfurl-read` is the read-side peer — three coupled files:**
+- `SKILL.md` — agent-facing: *when* to invoke (the `description` triggers on the user handing over an unfurl URL to read/summarize/discuss), the read commands, and a situation → fix table. It tells the agent to fetch `/source` instead of scraping the rendered Page.
+- `scripts/unfurl-read.py` — the implementation. Takes a Share link / `/source` URL / bare token, derives `/p/{token}/source`, and GETs it with **no auth** (token-based, like the Page). Prints a `format:` + `length:` header, a blank line, then the verbatim content.
+- `scripts/unfurl-read.test.py` — a threaded loopback HTTP stub; no upstream, no key.
+
+**`/source` contract (unfurl issue #150 / ADR-0017).** `GET /p/{token}/source` serves a live Doc's content verbatim — `text/markdown; charset=utf-8` for Markdown, `text/html; charset=utf-8` for HTML; no frame harness, no JSON envelope. Flagged / taken_down / missing → `404`; a live but empty Doc → `200` with an empty body (not an error). It is `force-dynamic`, sends `X-Robots-Tag: noindex, nofollow`, reads via `loadDocByToken`, and is **not** counted as a View. The bare body is a frozen public contract — future metadata arrives via response headers, never by wrapping the body. Source of truth: the **unfurl project** (`app/p/[token]/source/route.ts`). The read-side output contract mirrors share's: success → header + verbatim content on stdout, exit 0; failure → one mapped message on stderr, `2` = usage (not a share link / bad token, and no request made), `1` = runtime/API (404, other non-2xx, network).
+
 ## Conventions
 
-- Keep `unfurl-share.py` standard-library only (`urllib`, `json`) — that portability is the reason a Python script was chosen over a shell/node tool.
+- Keep both scripts standard-library only (`urllib`, `json`, …) — that portability is the reason a Python script was chosen over a shell/node tool. `unfurl-read.py` additionally uses `urllib.parse`.
 - Add new skills as `skills/<name>/` with their own `SKILL.md`; reference bundled assets with skill-root-relative paths.

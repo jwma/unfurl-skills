@@ -16,6 +16,7 @@ Agent skills for **unfurl**, the single-URL document publisher. Publish Markdown
 | Skill | Description |
 |-------|-------------|
 | [`unfurl-share`](./skills/unfurl-share) | Publish Markdown or HTML to an unfurl instance and get back the Share link. |
+| [`unfurl-read`](./skills/unfurl-read) | Read the verbatim content of a shared unfurl Doc from its link — raw Markdown/HTML via the `/source` endpoint, minimum tokens. |
 
 ## Install
 
@@ -57,7 +58,7 @@ export UNFURL_API_KEY="..."        # a Creator's API key from the unfurl dashboa
 
 The unfurl instance is fixed at `https://unfurl.anmuji.com`. Set `UNFURL_BASE_URL` (or pass `--base-url`) only to target a self-hosted instance.
 
-See the skill's [`SKILL.md`](./skills/unfurl-share/SKILL.md) for full usage, flags, and the error-code reference.
+See the skill's [`SKILL.md`](./skills/unfurl-share/SKILL.md) for full usage, flags, and the error-code reference. Reading a shared Doc (`unfurl-read`) needs **no** API key — the Share link alone is enough.
 
 ## Usage
 
@@ -91,12 +92,35 @@ It triggers on *publish / share / post to unfurl*, *make a share link*, or any m
 
 The underlying flags (`--format`, `--title`, `--file`, …) and the full error-code reference are in [`SKILL.md`](./skills/unfurl-share/SKILL.md) — you won't normally need them.
 
+### Read a shared Doc
+
+Paste an unfurl **Share link** into the conversation and ask about it. The agent fetches the Doc's raw content through the dedicated `/source` endpoint and reads that directly, instead of scraping the rendered page — far fewer tokens, no boilerplate to filter out. **No API key is needed to read**; the Share link alone is enough.
+
+**English**
+
+| You say … | … and the agent does |
+|-----------|----------------------|
+| "Summarize `https://unfurl.anmuji.com/p/abc123`." | reads the Doc's Markdown/HTML and summarizes it |
+| "What does `https://unfurl.anmuji.com/p/abc123` actually say?" | reads and explains it in plain terms |
+| "Translate `https://unfurl.anmuji.com/p/abc123` to English." | reads the source and translates |
+
+**中文**
+
+| 你说…… | agent 的反应 |
+|--------|--------------|
+| "帮我总结一下 `https://unfurl.anmuji.com/p/abc123`。" | 读取原文并总结 |
+| "`https://unfurl.anmuji.com/p/abc123` 这篇讲了什么？" | 读取并用大白话讲解 |
+| "把 `https://unfurl.anmuji.com/p/abc123` 翻译成英文。" | 读取源文并翻译 |
+
+It triggers whenever you hand the agent an unfurl URL and want the content — summarize, explain, answer questions, translate, or reuse it. See [`unfurl-read/SKILL.md`](./skills/unfurl-read/SKILL.md) for details.
+
 ## Develop
 
-Each skill is self-contained under `skills/<name>/`. The `unfurl-share` script is Python 3 standard-library only — no dependencies. Run its offline test suite:
+Each skill is self-contained under `skills/<name>/`. Both scripts are Python 3 standard-library only — no dependencies. Run their offline test suites (no network, no credentials):
 
 ```sh
 python3 skills/unfurl-share/scripts/unfurl-share.test.py
+python3 skills/unfurl-read/scripts/unfurl-read.test.py
 ```
 
 ## License
