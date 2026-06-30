@@ -37,8 +37,10 @@ RESPONSES = {
     "success_md":    (200, "text/markdown; charset=utf-8", "# Hello unfurl\n"),
     "success_html":  (200, "text/html; charset=utf-8", "<b>Hi</b>"),
     "success_empty": (200, "text/markdown; charset=utf-8", ""),
+    "success_utf8":  (200, "text/markdown; charset=utf-8", "# 标题\n\n你好 unfurl 🚀\n"),
     "not_found":     (404, "text/html; charset=utf-8", "<html>404</html>"),
     "server_error":  (500, "text/html; charset=utf-8", "<html>500 oops</html>"),
+    "empty_500":     (500, "text/html; charset=utf-8", ""),
     "oversized":     (500, "text/html; charset=utf-8", "X" * 400),
 }
 
@@ -148,19 +150,28 @@ def main():
                                  ["%s/p/%s" % (BASE_URL, TOKEN)])
     eq("success_md method", "GET", REQ.get("method", ""))
     eq("success_md path", "/p/%s/source" % TOKEN, REQ.get("path", ""))
-    eq("success_md output", "format: markdown\nlength: %d chars\n\n%s" % (len(BODY_MD), BODY_MD), OUT)
+    eq("success_md output", "format: markdown\nlength: %d bytes\n\n%s" % (len(BODY_MD.encode("utf-8")), BODY_MD), OUT)
 
     # success html: format label follows text/html.
     BODY_HTML = "<b>Hi</b>"
     OUT, ERR, RC, REQ = run_case("success_html", 0, "success_html",
                                  ["%s/p/%s" % (BASE_URL, "def456")])
     eq("success_html path", "/p/def456/source", REQ.get("path", ""))
-    eq("success_html output", "format: html\nlength: %d chars\n\n%s" % (len(BODY_HTML), BODY_HTML), OUT)
+    eq("success_html output", "format: html\nlength: %d bytes\n\n%s" % (len(BODY_HTML.encode("utf-8")), BODY_HTML), OUT)
 
     # empty live Doc -> 200, length: 0, exit 0 (NOT a failure).
     OUT, ERR, RC, REQ = run_case("success_empty", 0, "success_empty",
                                  ["%s/p/%s" % (BASE_URL, "empty1")])
-    eq("success_empty output", "format: markdown\nlength: 0 chars\n\n", OUT)
+    eq("success_empty output", "format: markdown\nlength: 0 bytes\n\n", OUT)
+
+    # multibyte UTF-8 content is written byte-for-byte: length is the true byte
+    # count (not the smaller char count), and the body round-trips exactly.
+    BODY_UTF8 = "# 标题\n\n你好 unfurl 🚀\n"
+    OUT, ERR, RC, REQ = run_case("success_utf8", 0, "success_utf8",
+                                 ["%s/p/%s" % (BASE_URL, "u8")])
+    eq("success_utf8 path", "/p/u8/source", REQ.get("path", ""))
+    eq("success_utf8 output",
+       "format: markdown\nlength: %d bytes\n\n%s" % (len(BODY_UTF8.encode("utf-8")), BODY_UTF8), OUT)
 
     # 404 -> mapped message, exit 1.
     OUT, ERR, RC, REQ = run_case("not_found", 1, "not_found",
@@ -172,6 +183,11 @@ def main():
     OUT, ERR, RC, REQ = run_case("server_error", 1, "server_error",
                                  ["%s/p/%s" % (BASE_URL, "x")])
     check("server_error mentions status", "HTTP 500" in ERR)
+
+    # non-2xx with an empty body -> message ends at the period, no trailing space.
+    OUT, ERR, RC, REQ = run_case("empty_500", 1, "empty_500",
+                                 ["%s/p/%s" % (BASE_URL, "x")])
+    eq("empty_500 message", "unfurl returned HTTP 500 for the Source.", ERR)
 
     # oversized non-JSON error body truncated by default; full body under DEBUG.
     OUT, ERR, RC, REQ = run_case("oversized", 1, "oversized",

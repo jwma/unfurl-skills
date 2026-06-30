@@ -122,7 +122,11 @@ def report_non_2xx(http_code, err_body) -> NoReturn:
     if http_code == 404:
         die("No Source for this link — the Doc may be taken down, flagged / under "
             "review, or may not exist. Open the Share link in a browser to check.")
-    die("unfurl returned HTTP %s for the Source. %s" % (http_code, raw_hint(err_body)))
+    msg = "unfurl returned HTTP %s for the Source." % http_code
+    hint = raw_hint(err_body)
+    if hint:
+        msg += " " + hint
+    die(msg)
 
 
 def parse_args():
@@ -175,12 +179,17 @@ def main():
         # urlopen raises on non-2xx, but be defensive.
         report_non_2xx(http_code, "")
 
-    # Verbatim: print exactly the Creator's bytes, no wrapper or injected newline.
-    text = body.decode("utf-8", "replace")
-    out = sys.stdout
-    out.write("format: %s\n" % format_from_ctype(ctype))
-    out.write("length: %d chars\n\n" % len(text))
-    out.write(text)
+    # Verbatim: write the Source's exact bytes to the binary stdout buffer so the
+    # output is independent of the process stdout encoding and is never altered by
+    # a decode/encode round-trip (no errors="replace", no replacement chars). The
+    # header is ASCII, so UTF-8-encoding it is lossless; length is the true byte
+    # count of the body written below it.
+    header = ("format: %s\nlength: %d bytes\n\n"
+              % (format_from_ctype(ctype), len(body))).encode("utf-8")
+    out = sys.stdout.buffer
+    out.write(header)
+    out.write(body)
+    out.flush()
 
 
 if __name__ == "__main__":

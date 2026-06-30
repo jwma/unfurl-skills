@@ -27,12 +27,12 @@ On success (exit 0) the script prints, on stdout:
 
 ```
 format: markdown
-length: 1234 chars
+length: 1234 bytes
 
 <verbatim content of the Doc>
 ```
 
-`format` is `markdown` or `html` (read from the response Content-Type, so you parse the body correctly without sniffing). `length` is the exact character count of the content — `0` means a legitimately empty Doc (a live but blank Doc returns 200, not an error), not a failure. Everything after the blank line is the Doc's content exactly as the Creator wrote it: no wrapper, no injected scripts, no metadata.
+`format` is `markdown` or `html` (read from the response Content-Type, so you parse the body correctly without sniffing). `length` is the exact **byte** count of the content as served — `0` means a legitimately empty Doc (a live but blank Doc returns 200, not an error), not a failure. Everything after the blank line is the Doc's content exactly as the Creator wrote it, written **byte-for-byte** (raw bytes to stdout — no decode/encode round-trip, no replacement characters, no wrapper, no injected scripts, no metadata).
 
 ## Errors
 
